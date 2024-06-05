@@ -1,4 +1,5 @@
 ﻿using System.Collections;
+using System.Collections.ObjectModel;
 using System.Linq;
 
 namespace ChainMapLib;
@@ -7,7 +8,7 @@ public struct ChainMap<TKey, TValue> : IDictionary<TKey, TValue>
 {
     private List<Dictionary<TKey, TValue>> _dictionaries = new List<Dictionary<TKey, TValue>>();
     private Dictionary<TKey, TValue> _mainDictionary = new Dictionary<TKey, TValue>();
-
+    
     public ChainMap(params Dictionary<TKey, TValue>[] dictionaries)
     {
         if (dictionaries.Length != 0)
@@ -40,22 +41,6 @@ public struct ChainMap<TKey, TValue> : IDictionary<TKey, TValue>
                     return;
                 }
             }
-        }
-    }
-
-    public void AddDictionary(Dictionary<TKey, TValue> dictToAdd, int position)
-    {
-        if (position != 0 && position < _dictionaries.Count)
-        {
-            _dictionaries.Insert(position, dictToAdd);
-        }
-    }
-    
-    public void RemoveDictionary(int position)
-    {
-        if (position != 0 && position < _dictionaries.Count)
-        {
-            _dictionaries.RemoveAt(position);
         }
     }
     
@@ -147,4 +132,62 @@ public struct ChainMap<TKey, TValue> : IDictionary<TKey, TValue>
 
     public ICollection<TKey> Keys => _dictionaries.SelectMany(d => d.Keys).Distinct().ToList();
     public ICollection<TValue> Values => _dictionaries.SelectMany(d => d.Values).Distinct().ToList();
+    
+    public void AddDictionary(Dictionary<TKey, TValue> dictToAdd, int index)
+    {
+        index++;
+        
+        if (index != 1)
+        {
+            if (index < 1)
+            {
+                _dictionaries.Add(dictToAdd);
+            }else if (index >= _dictionaries.Count)
+            {
+                _dictionaries.Insert(1,dictToAdd);
+            }
+            else
+            {
+                _dictionaries.Insert(index + 1, dictToAdd);
+            }
+        }
+    }
+    
+    public void RemoveDictionary(int index)
+    {
+        index++;
+        
+        if (index != 1 && index < _dictionaries.Count)
+        {
+            _dictionaries.RemoveAt(index + 1);
+        }
+    }
+
+    public void ClearDictionaries() => _dictionaries.RemoveRange(1, _dictionaries.Count - 1);
+    
+    public int CountDictionaries() => _dictionaries.Count - 1;
+
+    public ReadOnlyCollection<Dictionary<TKey, TValue>> GetDictionaries() => new (_dictionaries.GetRange(1, _dictionaries.Count - 1));
+
+    public ReadOnlyDictionary<TKey, TValue> GetDictionary(int index) => new(_dictionaries[index + 1]);
+
+    public Dictionary<TKey, TValue> GetMainDictionary() => _mainDictionary;
+
+    public Dictionary<TKey, TValue> Merge()
+    {
+        var result = new Dictionary<TKey, TValue>();
+
+        foreach (var d in _dictionaries)
+        {
+            foreach (var line in d)
+            {
+                if (!result.ContainsKey(line.Key))
+                {
+                    result[line.Key] = line.Value;
+                }
+            }
+        }
+
+        return result;
+    }
 }
