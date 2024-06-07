@@ -8,6 +8,11 @@ public struct ChainMap<TKey, TValue> : IDictionary<TKey, TValue>
 {
     private List<Dictionary<TKey, TValue>> _dictionaries = new List<Dictionary<TKey, TValue>>();
     private Dictionary<TKey, TValue> _mainDictionary = new Dictionary<TKey, TValue>();
+
+    public List<Dictionary<TKey, TValue>> Dictionaries
+    {
+        get => _dictionaries;
+    }
     
     public ChainMap(params Dictionary<TKey, TValue>[] dictionaries)
     {
@@ -38,6 +43,7 @@ public struct ChainMap<TKey, TValue> : IDictionary<TKey, TValue>
                 if (d.ContainsKey(key))
                 {
                     _mainDictionary[key] = value;
+                    _dictionaries[0][key] = value;
                     return;
                 }
             }
@@ -68,6 +74,7 @@ public struct ChainMap<TKey, TValue> : IDictionary<TKey, TValue>
         }
         
         _mainDictionary[key] = value;
+        _dictionaries[0][key] = value;
     }
     public void Add(KeyValuePair<TKey, TValue> item) => Add(item.Key, item.Value);
     
@@ -77,6 +84,7 @@ public struct ChainMap<TKey, TValue> : IDictionary<TKey, TValue>
         if (_mainDictionary.ContainsKey(key)) return false;
         
         _mainDictionary[key] = value;
+        _dictionaries[0][key] = value;
         return true;
     }
 
@@ -108,6 +116,7 @@ public struct ChainMap<TKey, TValue> : IDictionary<TKey, TValue>
         if (_mainDictionary.ContainsKey(key))
         {
             _mainDictionary.Remove(key);
+            _dictionaries[0].Remove(key);
             return true;
         }
 
@@ -137,7 +146,7 @@ public struct ChainMap<TKey, TValue> : IDictionary<TKey, TValue>
     {
         index++;
         
-        if (index != 1)
+        if (index != 0)
         {
             if (index < 1)
             {
@@ -148,7 +157,7 @@ public struct ChainMap<TKey, TValue> : IDictionary<TKey, TValue>
             }
             else
             {
-                _dictionaries.Insert(index + 1, dictToAdd);
+                _dictionaries.Insert(index, dictToAdd);
             }
         }
     }
@@ -157,15 +166,19 @@ public struct ChainMap<TKey, TValue> : IDictionary<TKey, TValue>
     {
         index++;
         
-        if (index != 1 && index < _dictionaries.Count)
+        if (index >= 1 && index < _dictionaries.Count)
         {
-            _dictionaries.RemoveAt(index + 1);
+            _dictionaries.RemoveAt(index);
         }
     }
 
-    public void ClearDictionaries() => _dictionaries.RemoveRange(1, _dictionaries.Count - 1);
-    
-    public int CountDictionaries() => _dictionaries.Count - 1;
+    public void ClearDictionaries()
+    {
+        _dictionaries.Clear();
+        _mainDictionary = new Dictionary<TKey, TValue>();
+    }
+
+    public int CountDictionaries() => _dictionaries.Count;
 
     public ReadOnlyCollection<Dictionary<TKey, TValue>> GetDictionaries() => new (_dictionaries.GetRange(1, _dictionaries.Count - 1));
 
