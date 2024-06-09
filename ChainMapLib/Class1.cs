@@ -151,7 +151,7 @@ public struct ChainMap<TKey, TValue> : IDictionary<TKey, TValue>
             if (index < 1)
             {
                 _dictionaries.Add(dictToAdd);
-            }else if (index >= _dictionaries.Count)
+            }else if (index > _dictionaries.Count)
             {
                 _dictionaries.Insert(1,dictToAdd);
             }
@@ -180,9 +180,9 @@ public struct ChainMap<TKey, TValue> : IDictionary<TKey, TValue>
 
     public int CountDictionaries() => _dictionaries.Count;
 
-    public ReadOnlyCollection<Dictionary<TKey, TValue>> GetDictionaries() => new (_dictionaries.GetRange(1, _dictionaries.Count - 1));
+    public ReadOnlyCollection<Dictionary<TKey, TValue>> GetDictionaries() => new (_dictionaries);
 
-    public ReadOnlyDictionary<TKey, TValue> GetDictionary(int index) => new(_dictionaries[index + 1]);
+    public ReadOnlyDictionary<TKey, TValue> GetDictionary(int index) => new(_dictionaries[index]);
 
     public Dictionary<TKey, TValue> GetMainDictionary() => _mainDictionary;
 
